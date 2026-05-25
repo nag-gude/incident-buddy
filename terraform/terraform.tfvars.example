@@ -1,0 +1,19 @@
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+image_tag  = "latest"
+
+# Keep at least one instance warm so APScheduler + SSE stay alive (recommended for judging URL).
+min_instance_count = 1
+max_instance_count = 4
+
+# Secret Manager secret IDs — create secrets + versions in GCP before terraform apply.
+# See docs/DEPLOYMENT.md §1.2 and scripts/gcp-create-secrets.sh
+secret_admin_token             = "incidentbuddy-admin-token"
+secret_demo_token              = "incidentbuddy-demo-token"
+secret_truefoundry_api_key     = "incidentbuddy-truefoundry-api-key"
+secret_truefoundry_gateway_url = "incidentbuddy-truefoundry-gateway-url"
+secret_openai_api_key          = "incidentbuddy-openai-api-key"
+mount_openai_api_key           = false   # set true after creating the OpenAI secret
+
+# Public demo (no Google sign-in required)
+allow_unauthenticated = true
