@@ -193,6 +193,7 @@ The background loop rotates five scenarios (`payments-api` P1/P2, `checkout-api`
 | POST | `/api/admin/loop/resume` | Resume the chaos loop (demo token) |
 | GET | `/healthz` | Liveness probe (Cloud Run) |
 
+
 ## Hackathon tracks
 
 | Track | Fit |
