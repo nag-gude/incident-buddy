@@ -1,0 +1,43 @@
+# Local Docker deployment — run from repository root:
+#   docker compose up --build
+# UI: http://localhost:3000  |  API docs: http://localhost:8000/docs
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.backend
+    ports:
+      - "8000:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_PATH: /data/incidentbuddy.db
+      RUNBOOKS_DIR: /app/runbooks
+      LOOP_INTERVAL_SECONDS: "60"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+    volumes:
+      - incidentbuddy-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  ui:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.frontend
+    ports:
+      - "3000:8080"
+    environment:
+      # Overrides .env — browser hits UI; UI proxies /api to internal API
+      BACKEND_URL: http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  incidentbuddy-data:

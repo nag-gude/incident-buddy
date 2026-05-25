@@ -1,0 +1,57 @@
+# IncidentBuddy API on Fly.io
+#
+#   fly volumes create incidentbuddy_data --size 1 --region sjc
+#   fly secrets set \
+#     ADMIN_TOKEN=... \
+#     DEMO_TOKEN=... \
+#     TRUEFOUNDRY_API_KEY=... \
+#     TRUEFOUNDRY_GATEWAY_URL=... \
+#     OPENAI_API_KEY=...
+#   fly deploy
+
+app = "incidentbuddy-api"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "deploy/Dockerfile.backend"
+
+[env]
+  PORT = "8080"
+  DATABASE_PATH = "/data/incidentbuddy.db"
+  RUNBOOKS_DIR = "/app/runbooks"
+  CORS_ORIGINS = "*"
+  DEMO_LOOP_ENABLED = "true"
+  LOOP_INTERVAL_SECONDS = "60"
+  LOOP_STATE_STEP_SECONDS = "15"
+  LOOP_GC_MAX_INCIDENTS = "50"
+  LOOP_LIVE_LLM_IDLE_MINUTES = "15"
+  LOOP_MAX_CONCURRENT_INCIDENTS = "2"
+  SSE_KEEPALIVE_SECONDS = "15"
+
+[[mounts]]
+  source = "incidentbuddy_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false       # critical: keep responsive 24/7 for judges
+  auto_start_machines = false
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1
+  cpu_kind = "shared"
+
+[processes]
+  app = ""
