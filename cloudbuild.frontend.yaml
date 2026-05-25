@@ -1,0 +1,29 @@
+# Build and push UI image (requires API URL for /api rewrites).
+# Usage:
+#   export BACKEND_URL=https://incident-buddy-api-....run.app
+#   gcloud builds submit . --config=cloudbuild.frontend.yaml \
+#     --substitutions=_REGION=$GCP_REGION,_TAG=latest,_BACKEND_URL=$BACKEND_URL
+substitutions:
+  _REGION: us-central1
+  _REPO: incident-buddy
+  _TAG: latest
+  _BACKEND_URL: ""
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - deploy/Dockerfile.frontend
+      - --build-arg
+      - BACKEND_URL=${_BACKEND_URL}
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/incident-buddy-frontend:${_TAG}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/incident-buddy-frontend:${_TAG}
+
+options:
+  logging: CLOUD_LOGGING_ONLY

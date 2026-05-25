@@ -1,0 +1,27 @@
+# Build and push API image via Cloud Build (avoids flaky `docker push` from Cloud Shell).
+# Usage (repo root):
+#   export GCP_PROJECT_ID=prj-caiml-hackathon-01
+#   export GCP_REGION=europe-west2
+#   gcloud builds submit . --config=cloudbuild.backend.yaml \
+#     --substitutions=_REGION=$GCP_REGION,_TAG=latest
+substitutions:
+  _REGION: us-central1
+  _REPO: incident-buddy
+  _TAG: latest
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - deploy/Dockerfile.backend
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/incident-buddy-backend:${_TAG}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/incident-buddy-backend:${_TAG}
+
+options:
+  logging: CLOUD_LOGGING_ONLY
