@@ -1,0 +1,30 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+ENV RUNBOOKS_DIR=/app/runbooks
+ENV DATABASE_PATH=/data/incidentbuddy.db
+ENV PORT=8080
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /data
+
+COPY backend/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY backend/app /app/app
+COPY runbooks /app/runbooks
+
+# Run as root so the Fly/Cloud-Run mounted volume at /data is always writable.
+# Acceptable trade-off for a hackathon demo container with no inbound shell.
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://127.0.0.1:${PORT:-8080}/healthz || exit 1
+
+# tini reaps zombies and forwards signals so APScheduler shuts down cleanly.
+# --workers 1 is required: APScheduler is in-process and must not duplicate jobs.
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --proxy-headers --forwarded-allow-ips='*' --workers 1"]
