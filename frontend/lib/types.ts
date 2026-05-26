@@ -26,6 +26,7 @@ export type TranscriptEvent = {
 
 export type IncidentDetail = {
   id: string;
+  archived?: boolean;
   service: string;
   severity: string;
   title: string;

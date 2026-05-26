@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useStreamContext } from "@/components/IncidentStreamProvider";
 
 export type StreamConnectionStatus = "connecting" | "live" | "reconnecting";
 
@@ -10,63 +11,47 @@ export type StreamEvent = {
   data: Record<string, unknown>;
 };
 
-const EVENT_TYPES = [
+const GLOBAL_SSE_TYPES = new Set([
   "hello",
   "ping",
-  "loop.tick",
+  "session.ping",
   "loop.paused",
   "loop.resumed",
   "loop.gc",
+  "loop.tick",
   "loop.error",
-  "incident.created",
-  "incident.state_change",
-  "incident.log",
-  "agent.transcript",
-  "agent.complete",
-  "comms.approved",
-  "comms.rejected",
-  "session.ping",
   "demo.reset",
-];
+]);
+
+function matchesIncidentFilter(evt: StreamEvent, incidentId: string): boolean {
+  if (GLOBAL_SSE_TYPES.has(evt.type)) return true;
+  const dataId = (evt.data as { incident_id?: string }).incident_id;
+  if (dataId == null) return evt.type.startsWith("loop.");
+  return String(dataId) === incidentId;
+}
 
 export function useIncidentStream(options?: {
   incidentId?: string;
   onEvent?: (e: StreamEvent) => void;
 }) {
-  const [lastEvent, setLastEvent] = useState<StreamEvent | null>(null);
-  const [tick, setTick] = useState(0);
-  const [streamStatus, setStreamStatus] = useState<StreamConnectionStatus>("connecting");
+  const { streamStatus, lastEvent, tick, subscribe } = useStreamContext();
+  const [filteredLast, setFilteredLast] = useState<StreamEvent | null>(null);
   const onEventRef = useRef(options?.onEvent);
   onEventRef.current = options?.onEvent;
   const incidentId = options?.incidentId;
 
   useEffect(() => {
-    setStreamStatus("connecting");
-    const url = incidentId
-      ? `/api/events?incident_id=${encodeURIComponent(incidentId)}`
-      : "/api/events";
-    const es = new EventSource(url);
-    es.onopen = () => setStreamStatus("live");
-    es.onerror = () =>
-      setStreamStatus((prev) => (prev === "live" ? "reconnecting" : prev));
+    return subscribe((evt) => {
+      if (incidentId && !matchesIncidentFilter(evt, incidentId)) return;
+      setFilteredLast(evt);
+      onEventRef.current?.(evt);
+    });
+  }, [subscribe, incidentId]);
 
-    const handler = (type: string) => (ev: MessageEvent) => {
-      try {
-        const parsed = JSON.parse(ev.data ?? "{}") as { ts?: string } & Record<string, unknown>;
-        const { ts, ...rest } = parsed;
-        const evt: StreamEvent = { type, ts: ts ?? new Date().toISOString(), data: rest };
-        setLastEvent(evt);
-        setTick((t) => t + 1);
-        onEventRef.current?.(evt);
-      } catch {
-        /* ignore malformed frames */
-      }
-    };
-
-    for (const t of EVENT_TYPES) es.addEventListener(t, handler(t) as EventListener);
-
-    return () => es.close();
-  }, [incidentId]);
-
-  return { lastEvent, tick, connected: streamStatus === "live", streamStatus };
+  return {
+    lastEvent: incidentId ? filteredLast : lastEvent,
+    tick,
+    connected: streamStatus === "live",
+    streamStatus,
+  };
 }

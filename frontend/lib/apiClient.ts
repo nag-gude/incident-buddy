@@ -1,4 +1,5 @@
 import { authHeaders } from "@/lib/demoToken";
+import { publicApiUrl } from "@/lib/publicApiUrl";
 import { adminHeaders } from "@/components/AdminTokenField";
 
 export class ApiError extends Error {
@@ -32,7 +33,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     body: json !== undefined ? JSON.stringify(json) : rest.body,
   };
 
-  const res = await fetch(path, init);
+  const res = await fetch(publicApiUrl(path), init);
   let body: unknown = null;
   const text = await res.text();
   if (text) {
