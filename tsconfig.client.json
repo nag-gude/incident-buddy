@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "customConditions": ["browser"],
-    "types": ["vite/client"]
-  },
-  "include": ["src/client/**/*"],
-  "exclude": []
-}
