@@ -14,7 +14,7 @@ export default function IncidentsError({
       title="Could not load incidents"
       message={
         error.message ||
-        "The API may be restarting. Wait a moment, then retry."
+        "The API may be restarting or the UI cannot reach the backend. If this is Cloud Run, rebuild the frontend with BACKEND_URL set to your API URL, then redeploy."
       }
       reset={reset}
     />

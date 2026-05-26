@@ -49,3 +49,13 @@ def require_demo_token(x_demo_token: str | None = Header(default=None, alias="X-
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid X-Demo-Token",
         )
+
+
+def require_loop_control_token(
+    x_demo_token: str | None = Header(default=None, alias="X-Demo-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> None:
+    """Pause/resume: accept demo token (judging URL) or admin token (chaos panel)."""
+    if _norm(x_admin_token) == _norm(settings.admin_token):
+        return
+    require_demo_token(x_demo_token)

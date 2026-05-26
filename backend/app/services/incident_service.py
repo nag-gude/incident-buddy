@@ -252,6 +252,7 @@ def get_incident(incident_id: str) -> IncidentDetail:
 
     return IncidentDetail(
         id=d["id"],
+        archived=bool(d.get("archived")),
         service=d["service"],
         severity=d["severity"],
         title=d["title"],
@@ -374,6 +375,7 @@ def reject_comms(incident_id: str, body: RejectCommsBody) -> dict:
 
 
 def reset_demo() -> dict:
+    keep_paused = loop_state.is_paused()
     with get_conn() as conn:
         for table in [
             "comms_drafts",
@@ -396,6 +398,8 @@ def reset_demo() -> dict:
     )
     mcp_adapter.seed_all_demo_caches()
     loop_state.reset_scenario_rotation()
+    if keep_paused:
+        loop_state.set_paused(True)
     event_bus.publish("demo.reset")
     log_service.emit_log("Demo data reset", source="system", level="info")
     return {

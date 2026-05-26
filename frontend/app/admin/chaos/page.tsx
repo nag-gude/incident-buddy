@@ -80,7 +80,11 @@ export default function ChaosPage() {
       <h1 className="text-2xl font-bold text-white">Chaos controls</h1>
       <p className="text-sm text-slate-400">
         Simulate infrastructure failures. Call <span className="font-mono">POST /api/demo/reset</span> between
-        video takes.
+        video takes. Clearing chaos does not resume the background loop — use{" "}
+        <a href="/admin" className="text-accent hover:underline">
+          Admin → Resume loop
+        </a>
+        .
       </p>
 
       <AdminTokenField token={token} onChange={setToken} />

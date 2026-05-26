@@ -73,6 +73,15 @@ def _log_llm_call(incident_id: str, result: llm_gateway.LLMResult) -> None:
     )
 
 
+def clear_transcript(incident_id: str) -> None:
+    """Remove prior agent transcript so re-runs do not stack duplicate reasoning lines."""
+    with get_conn() as conn:
+        conn.execute(
+            "DELETE FROM agent_transcript_events WHERE incident_id=?",
+            (incident_id,),
+        )
+
+
 def _timeline(incident_id: str, event_type: str, message: str, actor: str = "agent") -> None:
     with get_conn() as conn:
         conn.execute(
@@ -416,6 +425,7 @@ def run_agent(
     keeps the dashboard visually alive."""
     degraded_notes: list[str] = chaos.active_degraded_labels()
 
+    clear_transcript(incident_id)
     _timeline(incident_id, "agent_started", "Agent orchestration started")
     _transcript(incident_id, "triage", {"service": service, "runbook_id": runbook_id})
 

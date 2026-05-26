@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChaosTimeline } from "@/components/ChaosTimeline";
 import { CommsPanel } from "@/components/CommsPanel";
@@ -32,7 +31,6 @@ function severityBadgeClass(s: string) {
 }
 
 export function IncidentLiveDashboard({ initial }: { initial: IncidentDetail }) {
-  const router = useRouter();
   const [data, setData] = useState(initial);
   const [resState, setResState] = useState<ResilienceState | null>(null);
   const [resScore, setResScore] = useState<ResilienceScore | null>(null);
@@ -156,7 +154,6 @@ export function IncidentLiveDashboard({ initial }: { initial: IncidentDetail }) 
     try {
       await apiFetch(`/api/incidents/${data.id}/run-agent`, { method: "POST" });
       await fullRefresh();
-      router.refresh();
     } catch (e) {
       setError(
         e instanceof ApiError
@@ -227,6 +224,13 @@ export function IncidentLiveDashboard({ initial }: { initial: IncidentDetail }) 
       </header>
 
       <DegradedBanner flags={data.degraded_flags} />
+
+      {data.archived && (
+        <div className="rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm text-slate-300">
+          This incident was archived by the demo retention loop. It is hidden from the list but
+          still viewable by direct link.
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <button

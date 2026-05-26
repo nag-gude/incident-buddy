@@ -71,6 +71,7 @@ class IncidentSummary(BaseModel):
 
 
 class IncidentDetail(IncidentSummary):
+    archived: bool = False
     description: str | None = None
     runbook_id: str | None = None
     evidence_refs: list[str] = Field(default_factory=list)

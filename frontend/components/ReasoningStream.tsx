@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { transcriptForLatestRun } from "@/lib/transcript";
 import type { TranscriptEvent } from "@/lib/types";
 
 function providerChip(t: TranscriptEvent) {
@@ -14,9 +15,10 @@ function providerChip(t: TranscriptEvent) {
 }
 
 export function ReasoningStream({ transcript }: { transcript: TranscriptEvent[] }) {
-  const lines = transcript.filter((t) => t.step === "reasoning_line");
-  const analyze = transcript.find((t) => t.step === "analyze");
-  const failover = transcript.find((t) => t.step === "gateway_failover");
+  const runTranscript = useMemo(() => transcriptForLatestRun(transcript), [transcript]);
+  const lines = runTranscript.filter((t) => t.step === "reasoning_line");
+  const analyze = [...runTranscript].reverse().find((t) => t.step === "analyze");
+  const failover = [...runTranscript].reverse().find((t) => t.step === "gateway_failover");
 
   const [visible, setVisible] = useState(0);
   const prevLineCountRef = useRef(0);
@@ -73,7 +75,7 @@ export function ReasoningStream({ transcript }: { transcript: TranscriptEvent[] 
       </div>
       <ul className="mt-3 space-y-2 font-mono text-sm text-slate-300">
         {lines.slice(0, visible).map((t, i) => (
-          <li key={i} className="flex items-start gap-2">
+          <li key={`${t.created_at}-${i}`} className="flex items-start gap-2">
             <span className="text-accent">▸</span>
             <span>{String(t.payload?.text ?? "")}</span>
           </li>

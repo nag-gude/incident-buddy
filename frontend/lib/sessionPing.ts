@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { authHeaders, captureTokenFromUrl } from "./demoToken";
+import { publicApiUrl } from "./publicApiUrl";
 
 /**
  * Tells the backend "a judge is watching" so the chaos loop spends live LLM
@@ -12,7 +13,7 @@ export function useSessionPing() {
   useEffect(() => {
     captureTokenFromUrl();
     const ping = () => {
-      fetch("/api/events/ping", {
+      fetch(publicApiUrl("/api/events/ping"), {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         cache: "no-store",

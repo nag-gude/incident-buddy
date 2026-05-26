@@ -3,20 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/apiClient";
-
-type LoopJob = {
-  id: string;
-  next_run_time: string | null;
-};
-
-type LoopStatus = {
-  paused: boolean;
-  last_tick_at?: string;
-  last_scenario?: string;
-  scheduler_running?: boolean;
-  subscribers?: number;
-  jobs?: LoopJob[];
-};
+import { normalizeLoopStatus, type LoopStatus } from "@/lib/loopStatus";
 
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -42,7 +29,7 @@ export function LoopStatusStrip() {
   useEffect(() => {
     const load = () =>
       apiFetch<LoopStatus>("/api/admin/loop/status")
-        .then(setStatus)
+        .then((data) => setStatus(normalizeLoopStatus(data)))
         .catch(() => setStatus(null));
     load();
     const id = setInterval(load, 15_000);

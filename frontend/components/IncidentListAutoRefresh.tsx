@@ -4,11 +4,10 @@ import { useRouter } from "next/navigation";
 import { useIncidentStream } from "@/lib/useIncidentStream";
 
 /**
- * Mounted on the incidents list page: triggers `router.refresh()` whenever
- * the backend emits an event that could change the list (new incidents from
- * the chaos loop, state changes, GC archival, manual reset).
+ * Mounted on the incidents list page: refreshes the list whenever the backend
+ * emits an event that could change it (new incidents, state changes, GC, reset).
  */
-export function IncidentListAutoRefresh() {
+export function IncidentListAutoRefresh({ onRefresh }: { onRefresh?: () => void }) {
   const router = useRouter();
   useIncidentStream({
     onEvent: (e) => {
@@ -18,7 +17,8 @@ export function IncidentListAutoRefresh() {
         e.type === "loop.gc" ||
         e.type === "demo.reset"
       ) {
-        router.refresh();
+        if (onRefresh) onRefresh();
+        else router.refresh();
       }
     },
   });

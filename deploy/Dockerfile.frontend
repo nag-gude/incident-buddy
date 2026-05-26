@@ -9,6 +9,7 @@ ARG BACKEND_URL=http://api:8080
 ENV BACKEND_URL=${BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/ .
+# Next.js standalone image expects public/ (may be empty)
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

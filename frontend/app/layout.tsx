@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DemoTokenBootstrap } from "@/components/DemoTokenBootstrap";
+import { IncidentStreamProvider } from "@/components/IncidentStreamProvider";
 import { LiveSession } from "@/components/LiveSession";
 import "./globals.css";
 
@@ -9,14 +10,18 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const apiUrl = (process.env.BACKEND_URL || "").replace(/\/$/, "");
+
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <DemoTokenBootstrap />
-        <header className="border-b border-slate-800 bg-ink-900/80 backdrop-blur">
-          <NavBar />
-        </header>
-        <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        <IncidentStreamProvider apiUrl={apiUrl}>
+          <DemoTokenBootstrap />
+          <header className="border-b border-slate-800 bg-ink-900/80 backdrop-blur">
+            <NavBar />
+          </header>
+          <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        </IncidentStreamProvider>
       </body>
     </html>
   );

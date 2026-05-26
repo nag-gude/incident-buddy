@@ -37,11 +37,18 @@ def _kv_set(key: str, value: str) -> None:
 
 # ---- loop pause/resume ----
 
+_local_paused: bool | None = None
+
+
 def is_paused() -> bool:
+    if _local_paused is not None:
+        return _local_paused
     return _kv_get("loop:paused") == "1"
 
 
 def set_paused(paused: bool) -> None:
+    global _local_paused
+    _local_paused = paused
     _kv_set("loop:paused", "1" if paused else "0")
 
 

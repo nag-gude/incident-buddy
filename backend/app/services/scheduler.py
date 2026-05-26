@@ -173,6 +173,9 @@ async def advance_state() -> None:
 
 async def gc_old() -> None:
     """Archive incidents beyond the cap, keeping the newest N visible."""
+    if not settings.demo_loop_enabled or loop_state.is_paused():
+        return
+
     cap = settings.loop_gc_max_incidents
     with get_conn() as conn:
         rows = conn.execute(
