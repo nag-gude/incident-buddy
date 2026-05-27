@@ -10,12 +10,13 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const apiUrl = (process.env.BACKEND_URL || "").replace(/\/$/, "");
-
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <IncidentStreamProvider apiUrl={apiUrl}>
+        {/* Browser uses same-origin /api rewrites (build-time BACKEND_URL). Do not
+            point EventSource/fetch at the API host — each tab holds a long-lived
+            SSE slot on Cloud Run and direct hits exhaust backend concurrency. */}
+        <IncidentStreamProvider>
           <DemoTokenBootstrap />
           <header className="border-b border-slate-800 bg-ink-900/80 backdrop-blur">
             <NavBar />

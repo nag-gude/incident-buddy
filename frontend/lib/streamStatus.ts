@@ -6,7 +6,11 @@ export function streamStatusLabel(
 ): string {
   if (status === "live") return variant === "detail" ? "Live stream on" : "Live";
   if (status === "reconnecting") {
-    return variant === "detail" ? "Reconnecting stream…" : "Reconnecting…";
+    return variant === "detail"
+      ? "Reconnecting stream… (API may be busy — wait or pause loop on Admin)"
+      : "Reconnecting…";
   }
-  return variant === "detail" ? "Connecting stream…" : "Connecting…";
+  return variant === "detail"
+    ? "Connecting stream… (if this persists, API may be rate-limited)"
+    : "Connecting…";
 }
